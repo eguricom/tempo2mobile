@@ -75,14 +75,43 @@ function loadFromLocal<T>(key: string, fallback: T): T {
   } catch { return fallback }
 }
 
+const seedMobileUsers: User[] = [
+  {
+    id: "seed-julio",
+    name: "Julio",
+    lastName: "González",
+    email: "julio@molotov.es",
+    nif: "12345678Z",
+    role: "admin",
+    gpsEnabled: true,
+    avatarColor: "#3b82f6",
+    passwordHash: "00b72afbae521af2e19886f1ebb09aa1b6280e68043b57914629b346be54db64",
+  },
+  {
+    id: "seed-edu",
+    name: "Edu",
+    lastName: "Gutierrez",
+    email: "edu@molotov.es",
+    nif: "87654321X",
+    role: "employee",
+    gpsEnabled: true,
+    avatarColor: "#f59e0b",
+    passwordHash: "00b72afbae521af2e19886f1ebb09aa1b6280e68043b57914629b346be54db64",
+  },
+];
+
+const savedUsers = loadFromLocal<User[]>("tempo2m-users", []);
+const isFirstVisit = savedUsers.length === 0;
+const initialUsers = isFirstVisit ? (() => { saveToLocal("tempo2m-users", seedMobileUsers); return seedMobileUsers; })() : savedUsers;
+
 export const useAppStore = create<AppState>()((set, get) => ({
   loaded: false,
-  lockState: loadFromLocal<LockState>("tempo2m-lock", "locked"),
+  lockState: isFirstVisit ? "unlocked" : loadFromLocal<LockState>("tempo2m-lock", "locked"),
   sessionUserId: loadFromLocal<string | null>("tempo2m-session", null),
   currentUserId: loadFromLocal("tempo2m-current", ""),
   devMode: loadFromLocal("tempo2m-dev", false),
 
-  users: loadFromLocal<User[]>("tempo2m-users", []),
+  users: initialUsers,
   shifts: loadFromLocal<Shift[]>("tempo2m-shifts", []),
 
   setCurrentUser: (id) => { set({ currentUserId: id }); saveToLocal("tempo2m-current", id); },
