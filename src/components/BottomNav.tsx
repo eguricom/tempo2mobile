@@ -23,7 +23,7 @@ export function BottomNav() {
   });
 
   return (
-    <nav className="flex items-center justify-around border-t bg-background px-2 pb-1 pt-1.5 safe-area-bottom">
+    <nav className="flex items-center justify-around border-t bg-background px-2 pb-1 pt-1.5" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
       {visible.map((tab) => {
         const active = location.pathname === tab.to;
         return (
