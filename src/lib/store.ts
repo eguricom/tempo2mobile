@@ -102,7 +102,18 @@ const seedMobileUsers: User[] = [
 
 const savedUsers = loadFromLocal<User[]>("tempo2m-users", []);
 const isFirstVisit = savedUsers.length === 0;
-const initialUsers = isFirstVisit ? (() => { saveToLocal("tempo2m-users", seedMobileUsers); return seedMobileUsers; })() : savedUsers;
+const initialUsers: User[] = isFirstVisit
+  ? (() => { saveToLocal("tempo2m-users", seedMobileUsers); return seedMobileUsers; })()
+  : (() => {
+      const merged = [...savedUsers];
+      for (const seed of seedMobileUsers) {
+        const idx = merged.findIndex((u) => u.id === seed.id);
+        if (idx >= 0) merged[idx] = seed;
+        else merged.push(seed);
+      }
+      saveToLocal("tempo2m-users", merged);
+      return merged;
+    })();
 
 export const useAppStore = create<AppState>()((set, get) => ({
   loaded: false,
@@ -118,11 +129,12 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
   login: async (nif) => {
     const state = get();
-    const user = state.users.find((u) => u.nif === nif.trim());
+    const normalized = nif.trim().toUpperCase();
+    const user = state.users.find((u) => u.nif.toUpperCase() === normalized);
     if (!user) return null;
-    let valid = user.nif === nif.trim();
+    let valid = user.nif.toUpperCase() === normalized;
     if (user.passwordHash) {
-      const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("Tempo2024!" + nif));
+      const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("Tempo2024!" + normalized));
       const hex = Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
       valid = hex === user.passwordHash;
     }
@@ -146,7 +158,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   }),
 
   addUser: (u) => set((s) => {
-    const users = [...s.users, { ...u, id: uid() }];
+    const users = [...s.users, { ...u, id: uid(), nif: u.nif.trim().toUpperCase() }];
     saveToLocal("tempo2m-users", users);
     return { users };
   }),

@@ -1,18 +1,15 @@
 import { useAppStore } from "@/lib/store";
-import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { User, Mail, Fingerprint, Shield, LogOut } from "lucide-react";
 
 export default function PerfilPage() {
   const { sessionUserId, users, logout } = useAppStore();
-  const navigate = useNavigate();
   const user = users.find((u) => u.id === sessionUserId);
   if (!user) return null;
 
   const handleLogout = () => {
     logout();
     toast.success("Sesión cerrada");
-    navigate({ to: "/" });
   };
 
   const info = [
