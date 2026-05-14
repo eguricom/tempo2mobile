@@ -1,38 +1,56 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import { GpsTracker } from "@/components/GpsTracker";
-import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Play, Pause, Square, Settings, Map, LogOut } from "lucide-react";
+import { Play, Pause, Square } from "lucide-react";
+
+const DAY_TARGET_SECONDS = 8 * 3600;
+const RING_RADIUS = 110;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 export default function HomePage() {
-  const { sessionUserId, users, shifts, startShift, pauseShift, resumeShift, endShift, devMode, logout } = useAppStore();
+  const { sessionUserId, users, shifts, startShift, pauseShift, resumeShift, endShift } = useAppStore();
   const user = users.find((u) => u.id === sessionUserId);
   const activeShift = shifts.find((s) => s.userId === sessionUserId && (s.status === "in_progress" || s.status === "paused"));
+
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const todayShifts = useMemo(() =>
     shifts.filter((s) => s.userId === sessionUserId && s.start.startsWith(new Date().toISOString().slice(0, 10))),
     [shifts, sessionUserId],
   );
 
-  const todayTotal = useMemo(() => {
+  const todayTotalMs = useMemo(() => {
     let total = 0;
     for (const s of todayShifts) {
       if (s.status === "finished" && s.end) {
         total += new Date(s.end).getTime() - new Date(s.start).getTime();
       } else if (s.status === "in_progress" || s.status === "paused") {
-        total += Date.now() - new Date(s.start).getTime();
+        total += now - new Date(s.start).getTime();
       }
       for (const p of s.pauses) {
         if (p.end) total -= new Date(p.end).getTime() - new Date(p.start).getTime();
-        else total -= Date.now() - new Date(p.start).getTime();
+        else total -= now - new Date(p.start).getTime();
       }
     }
-    return Math.floor(total / 60000);
-  }, [todayShifts]);
+    return Math.max(0, total);
+  }, [todayShifts, now]);
+
+  const totalSec = Math.floor(todayTotalMs / 1000);
+  const hours = Math.floor(totalSec / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  const timeStr = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+  const progress = Math.min(totalSec / DAY_TARGET_SECONDS, 1);
+  const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
 
   const recordGpsPoint = (): { lat?: number; lng?: number } => {
-    // Try to get GPS position synchronously from cache
     return {};
   };
 
@@ -83,36 +101,40 @@ export default function HomePage() {
             <p className="text-[10px] text-muted-foreground">{user?.name} {user?.lastName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          {devMode && (
-            <Link to="/admin" className="rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent">
-              <Map className="h-4 w-4" />
-            </Link>
-          )}
-          {user?.role === "admin" && (
-            <Link to="/usuarios" className="rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent">
-              <Settings className="h-4 w-4" />
-            </Link>
-          )}
-          <button onClick={() => { logout(); toast.success("Sesión cerrada"); }} className="rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent">
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 gap-8">
-        {/* User info */}
+      <main className="flex-1 flex flex-col items-center justify-center p-6 gap-6">
+        {/* Date */}
         <div className="text-center">
-          <h2 className="text-lg font-semibold">{user?.name} {user?.lastName}</h2>
           <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
 
-        {/* Today's hours */}
-        <div className="text-center">
-          <p className="text-5xl font-bold tabular-nums">{Math.floor(todayTotal / 60)}h {todayTotal % 60}m</p>
-          <p className="text-xs text-muted-foreground mt-1">Total hoy</p>
+        {/* Activity ring with timer */}
+        <div className="relative flex items-center justify-center">
+          <svg width="260" height="260" className="-rotate-90">
+            <circle cx="130" cy="130" r={RING_RADIUS} fill="none" stroke="hsl(var(--muted))" strokeWidth="14" />
+            <circle
+              cx="130" cy="130" r={RING_RADIUS}
+              fill="none"
+              stroke="hsl(var(--primary))"
+              strokeWidth="14"
+              strokeLinecap="round"
+              strokeDasharray={RING_CIRCUMFERENCE}
+              strokeDashoffset={strokeDashoffset}
+              className="transition-all duration-700 ease-out"
+            />
+          </svg>
+          <div className="absolute flex flex-col items-center">
+            <span className="text-5xl font-bold tabular-nums tracking-tight">{timeStr}</span>
+            <span className="text-xs text-muted-foreground mt-1">Total hoy</span>
+          </div>
         </div>
+
+        {/* Progress text */}
+        <p className="text-xs text-muted-foreground">
+          {Math.round(progress * 100)}% de la jornada ({Math.round((DAY_TARGET_SECONDS - totalSec) / 60)} min restantes)
+        </p>
 
         {/* Big buttons */}
         <div className="w-full max-w-xs space-y-3">
