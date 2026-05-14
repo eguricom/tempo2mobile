@@ -85,7 +85,7 @@ const seedMobileUsers: User[] = [
     role: "admin",
     gpsEnabled: true,
     avatarColor: "#3b82f6",
-    passwordHash: "00b72afbae521af2e19886f1ebb09aa1b6280e68043b57914629b346be54db64",
+    passwordHash: "103f2a1173fc037d0943e04ee3c86ee85ffbbd429220924f5937c9e067477da9",
   },
   {
     id: "seed-edu",
@@ -96,7 +96,7 @@ const seedMobileUsers: User[] = [
     role: "employee",
     gpsEnabled: true,
     avatarColor: "#f59e0b",
-    passwordHash: "00b72afbae521af2e19886f1ebb09aa1b6280e68043b57914629b346be54db64",
+    passwordHash: "de53beb43d783ee130a74ee7f79c411de20371610686824bc0d5563b1bdbbc02",
   },
 ];
 
