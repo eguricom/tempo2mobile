@@ -87,7 +87,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <GpsTracker />
 
       {/* Header */}
@@ -113,16 +113,15 @@ export default function HomePage() {
         {/* Activity ring with timer */}
         <div className="relative flex items-center justify-center">
           <svg width="260" height="260" className="-rotate-90">
-            <circle cx="130" cy="130" r={RING_RADIUS} fill="none" stroke="hsl(var(--muted))" strokeWidth="14" />
+            <circle cx="130" cy="130" r={RING_RADIUS} fill="none" className="stroke-muted/30" strokeWidth="14" />
             <circle
               cx="130" cy="130" r={RING_RADIUS}
               fill="none"
-              stroke="hsl(var(--primary))"
+              className="stroke-primary transition-all duration-700 ease-out"
               strokeWidth="14"
               strokeLinecap="round"
               strokeDasharray={RING_CIRCUMFERENCE}
               strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-700 ease-out"
             />
           </svg>
           <div className="absolute flex flex-col items-center">

@@ -1,5 +1,5 @@
 import { useAppStore } from "@/lib/store";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { Play, ClipboardList, User, Map, Settings } from "lucide-react";
 
 const TABS = [
@@ -12,7 +12,7 @@ const TABS = [
 
 export function BottomNav() {
   const { sessionUserId, users, devMode } = useAppStore();
-  const location = useLocation();
+  const router = useRouter();
   const user = users.find((u) => u.id === sessionUserId);
   if (!sessionUserId) return null;
 
@@ -25,7 +25,7 @@ export function BottomNav() {
   return (
     <nav className="flex items-center justify-around border-t bg-background px-2 pb-1 pt-1.5" style={{ paddingBottom: "calc(0.25rem + env(safe-area-inset-bottom, 0px))" }}>
       {visible.map((tab) => {
-        const active = location.pathname === tab.to;
+        const active = router.state.location.pathname === tab.to;
         return (
           <Link
             key={tab.to}

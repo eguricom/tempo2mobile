@@ -5,7 +5,6 @@ import { toast } from "sonner";
 export function LoginOverlay() {
   const sessionUserId = useAppStore((s) => s.sessionUserId);
   const lockState = useAppStore((s) => s.lockState);
-  const users = useAppStore((s) => s.users);
 
   if (lockState === "locked") return <BlockedScreen />;
   if (lockState === "setup") return <SetupScreen />;
@@ -24,7 +23,7 @@ function BlockedScreen() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center p-6 bg-background">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm text-center space-y-6">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">
           TM
@@ -71,7 +70,7 @@ function SetupScreen() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center p-6 bg-background">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-xl font-semibold text-center">Configurar administrador</h1>
         <p className="text-sm text-muted-foreground text-center">Crea el primer usuario para acceder.</p>
@@ -105,7 +104,7 @@ function LoginScreen() {
   };
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center p-6 bg-background">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold">

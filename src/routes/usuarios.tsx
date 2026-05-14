@@ -34,7 +34,7 @@ export default function UsuariosPage() {
   const userColor = (i: number) => colors[i % colors.length];
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex flex-1 flex-col bg-background">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-3">
           <Link to="/" className="rounded-md p-1 hover:bg-accent"><ArrowLeft className="h-5 w-5" /></Link>
