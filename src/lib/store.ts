@@ -101,9 +101,10 @@ const seedMobileUsers: User[] = [
 ];
 
 const savedUsers = loadFromLocal<User[]>("tempo2m-users", []);
+const savedLock = loadFromLocal<LockState | null>("tempo2m-lock", null);
 const isFirstVisit = savedUsers.length === 0;
 const initialUsers: User[] = isFirstVisit
-  ? (() => { saveToLocal("tempo2m-users", seedMobileUsers); return seedMobileUsers; })()
+  ? (() => { saveToLocal("tempo2m-users", seedMobileUsers); saveToLocal("tempo2m-lock", "unlocked" as LockState); return seedMobileUsers; })()
   : (() => {
       const merged = [...savedUsers];
       for (const seed of seedMobileUsers) {
@@ -117,7 +118,7 @@ const initialUsers: User[] = isFirstVisit
 
 export const useAppStore = create<AppState>()((set, get) => ({
   loaded: false,
-  lockState: isFirstVisit ? "unlocked" : loadFromLocal<LockState>("tempo2m-lock", "locked"),
+  lockState: isFirstVisit ? "unlocked" : savedLock ?? "locked",
   sessionUserId: loadFromLocal<string | null>("tempo2m-session", null),
   currentUserId: loadFromLocal("tempo2m-current", ""),
   devMode: loadFromLocal("tempo2m-dev", false),
