@@ -2,6 +2,10 @@ import { create } from "zustand";
 
 export type Role = "admin" | "employee";
 
+export interface UserPermissions {
+  magic_balance?: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -12,6 +16,7 @@ export interface User {
   gpsEnabled: boolean;
   avatarColor?: string;
   passwordHash?: string;
+  permissions?: UserPermissions;
 }
 
 export type ShiftStatus = "in_progress" | "paused" | "finished";
@@ -40,6 +45,7 @@ interface AppState {
   sessionUserId: string | null;
   currentUserId: string;
   devMode: boolean;
+  devPassword: string;
 
   users: User[];
   shifts: Shift[];
@@ -47,7 +53,7 @@ interface AppState {
   setCurrentUser: (id: string) => void;
   login: (nif: string) => Promise<User | null>;
   logout: () => void;
-  toggleDevMode: () => void;
+  toggleDevMode: (password: string) => boolean;
 
   addUser: (u: Omit<User, "id" | "passwordHash">) => void;
   updateUser: (id: string, u: Partial<User>) => void;
@@ -86,6 +92,7 @@ const seedMobileUsers: User[] = [
     gpsEnabled: true,
     avatarColor: "#3b82f6",
     passwordHash: "7fa19e04ac9fc259b0702e1634f5ea9f28c82116e8c6211599be4fa84a874bb7",
+    permissions: { magic_balance: true },
   },
   {
     id: "seed-edu",
@@ -97,6 +104,7 @@ const seedMobileUsers: User[] = [
     gpsEnabled: true,
     avatarColor: "#f59e0b",
     passwordHash: "6124e86c30bb5681239c7534d8456f170870da207a3d9c2183bfbbaa789dbde6",
+    permissions: { magic_balance: false },
   },
 ];
 
@@ -118,10 +126,11 @@ const initialUsers: User[] = isFirstVisit
 
 export const useAppStore = create<AppState>()((set, get) => ({
   loaded: false,
-  lockState: isFirstVisit ? "unlocked" : savedLock ?? "locked",
+  lockState: isFirstVisit ? "unlocked" : savedLock ?? "unlocked",
   sessionUserId: loadFromLocal<string | null>("tempo2m-session", null),
   currentUserId: loadFromLocal("tempo2m-current", ""),
   devMode: loadFromLocal("tempo2m-dev", false),
+  devPassword: import.meta.env.VITE_DEV_PASSWORD ?? "molo",
 
   users: initialUsers,
   shifts: loadFromLocal<Shift[]>("tempo2m-shifts", []),
@@ -152,14 +161,17 @@ export const useAppStore = create<AppState>()((set, get) => ({
     saveToLocal("tempo2m-current", "");
   },
 
-  toggleDevMode: () => set((s) => {
-    const next = !s.devMode;
+  toggleDevMode: (password) => {
+    const state = get();
+    if (password !== state.devPassword) return false;
+    const next = !state.devMode;
+    set({ devMode: next });
     saveToLocal("tempo2m-dev", next);
-    return { devMode: next };
-  }),
+    return true;
+  },
 
   addUser: (u) => set((s) => {
-    const users = [...s.users, { ...u, id: uid(), nif: u.nif.trim().toUpperCase() }];
+    const users = [...s.users, { ...u, id: uid(), nif: u.nif.trim().toUpperCase(), permissions: { magic_balance: true } }];
     saveToLocal("tempo2m-users", users);
     return { users };
   }),

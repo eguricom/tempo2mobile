@@ -10,7 +10,8 @@ delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIcon
 L.Icon.Default.mergeOptions({ iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png", iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png" });
 
 export default function AdminPage() {
-  const { users, shifts, devMode } = useAppStore();
+  const { sessionUserId, users, shifts, devMode } = useAppStore();
+  const currentUser = users.find((u) => u.id === sessionUserId);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const gpsUsers = users.filter((u) => u.gpsEnabled);
@@ -35,10 +36,10 @@ export default function AdminPage() {
     ? [userGpsPoints[userGpsPoints.length - 1].lat, userGpsPoints[userGpsPoints.length - 1].lng]
     : [43.362, -8.411]; // Default to A Coruña
 
-  if (!devMode) {
+  if (!devMode && currentUser?.role !== "admin") {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground">Solo disponible en modo desarrollador.</p>
+        <p className="text-sm text-muted-foreground">Solo disponible para administradores.</p>
         <Link to="/" className="mt-4 text-sm text-primary underline">Volver</Link>
       </div>
     );

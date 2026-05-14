@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ToggleLeft, ToggleRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UsuariosPage() {
@@ -29,7 +28,11 @@ export default function UsuariosPage() {
     toast.success(`GPS ${current ? "desactivado" : "activado"}`);
   };
 
-  // Assign colors to users
+  const toggleMagic = (userId: string, current: boolean | undefined) => {
+    updateUser(userId, { permissions: { magic_balance: !current } });
+    toast.success(`Cuadre mágico ${current ? "desactivado" : "activado"}`);
+  };
+
   const colors = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
   const userColor = (i: number) => colors[i % colors.length];
 
@@ -37,7 +40,6 @@ export default function UsuariosPage() {
     <div className="flex flex-1 flex-col bg-background">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link to="/" className="rounded-md p-1 hover:bg-accent"><ArrowLeft className="h-5 w-5" /></Link>
           <h1 className="text-base font-semibold">Usuarios</h1>
         </div>
         <button onClick={() => setShowForm(true)} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground flex items-center gap-1">
@@ -46,7 +48,7 @@ export default function UsuariosPage() {
       </header>
 
       <main className="flex-1 p-4 space-y-2">
-        {users.filter((u) => devMode || true).map((u, i) => (
+        {users.map((u, i) => (
           <div key={u.id} className="flex items-center justify-between rounded-lg border bg-card px-3 py-3">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: userColor(i) }}>
@@ -58,6 +60,14 @@ export default function UsuariosPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {devMode && (
+                <button
+                  onClick={() => toggleMagic(u.id, u.permissions?.magic_balance)}
+                  className={`rounded-md px-2 py-1 text-xs font-medium flex items-center gap-1 ${u.permissions?.magic_balance ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                </button>
+              )}
               <button
                 onClick={() => toggleGps(u.id, u.gpsEnabled)}
                 className={`rounded-md px-2 py-1 text-xs font-medium flex items-center gap-1 ${u.gpsEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
@@ -77,7 +87,6 @@ export default function UsuariosPage() {
         )}
       </main>
 
-      {/* Create user sheet */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30">
           <div className="w-full max-w-sm rounded-t-2xl sm:rounded-2xl bg-background p-6 shadow-xl">

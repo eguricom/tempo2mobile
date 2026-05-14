@@ -6,7 +6,7 @@ const TABS = [
   { to: "/", icon: Play, label: "Inicio", adminOnly: false, devOnly: false },
   { to: "/mis-jornadas", icon: ClipboardList, label: "Jornadas", adminOnly: false, devOnly: false },
   { to: "/perfil", icon: User, label: "Perfil", adminOnly: false, devOnly: false },
-  { to: "/admin", icon: Map, label: "Admin", adminOnly: false, devOnly: true },
+  { to: "/admin", icon: Map, label: "Admin", adminOnly: true, devOnly: false },
   { to: "/usuarios", icon: Settings, label: "Usuarios", adminOnly: true, devOnly: false },
 ];
 
